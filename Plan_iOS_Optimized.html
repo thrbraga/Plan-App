@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Plan. | iOS Mobile Optimized</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif],
+                    },
+                    colors: {
+                        apple: {
+                            blue: '#0071E3',
+                            blueHover: '#0077ED',
+                            bgLight: '#fbfbfd',
+                            bgDark: '#000000',
+                            cardLight: '#ffffff',
+                            cardDark: '#1c1c1e',
+                            borderLight: 'rgba(0, 0, 0, 0.08)',
+                            borderDark: 'rgba(255, 255, 255, 0.12)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for Financial Expenses Breakdown -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+    </style>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><rect width=%27100%27 height=%27100%27 rx=%2728%27 fill=%27%230071E3%27/><text x=%2750%27 y=%2772%27 font-family=%27-apple-system, sans-serif%27 font-size=%2765%27 font-weight=%27bold%27 fill=%27white%27 text-anchor=%27middle%27>P</text></svg>">
+</head>
+<body class="bg-[#fbfbfd] dark:bg-[#000000] text-[#1d1d1f] dark:text-[#f5f5f7] min-h-screen flex flex-col selection:bg-[#0071E3] selection:text-white">
+
+    <!-- Custom Notification Toast (iOS Banner Style) -->
+    <div id="toast" class="fixed top-4 left-4 right-4 z-50 transform -translate-y-24 opacity-0 transition-all duration-300 bg-[#1d1d1f]/90 text-white dark:bg-[#f5f5f7]/90 dark:text-[#1d1d1f] px-5 py-3.5 rounded-2xl shadow-2xl flex items-center space-x-3 text-sm font-semibold backdrop-blur-2xl max-w-md mx-auto">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 flex-shrink-0"></i>
+        <span id="toast-message" class="flex-1">Ação realizada com sucesso!</span>
+    </div>
+
+    <!-- Custom Modal for Confirmations -->
+    <div id="custom-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md hidden p-4">
+        <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.08] dark:border-white/[0.12] rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <h3 id="modal-title" class="text-lg font-bold tracking-tight">Confirmação</h3>
+            <p id="modal-desc" class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Deseja realmente prosseguir?</p>
+            <div class="flex space-x-3 pt-2">
+                <button id="modal-cancel" class="flex-1 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/10 rounded-2xl transition-colors">Cancelar</button>
+                <button id="modal-confirm" class="flex-1 py-3 text-sm font-semibold bg-[#0071E3] text-white rounded-2xl hover:opacity-90 transition-opacity">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Generic Modal -->
+    <div id="edit-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md hidden p-4">
+        <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.08] dark:border-white/[0.12] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 id="edit-modal-title" class="text-lg font-bold tracking-tight">Editar Registro</h3>
+                <button onclick="closeEditModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="edit-modal-body" class="space-y-4">
+                <!-- Dynamic form fields -->
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeEditModal()" class="flex-1 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/10 rounded-2xl transition-colors">Cancelar</button>
+                <button id="edit-modal-save-btn" class="flex-1 py-3 text-sm font-semibold bg-[#0071E3] text-white rounded-2xl hover:opacity-90 transition-opacity">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header / Navbar (iOS Header Style) -->
+    <header class="border-b border-black/[0.06] dark:border-white/[0.08] bg-white/80 dark:bg-[#000000]/80 backdrop-blur-2xl sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-2xl bg-[#0071E3] text-white flex items-center justify-center font-bold text-base shadow-md">
+                    P
+                </div>
+                <h1 class="font-bold text-lg tracking-tight">Plan</h1>
+            </div>
+
+            <!-- Desktop Navigation Tabs -->
+            <nav class="hidden md:flex space-x-1 bg-black/[0.04] dark:bg-white/[0.06] p-1.5 rounded-2xl border border-black/[0.04] dark:border-white/[0.06]">
+                <button onclick="switchTab('hoje')" id="nav-hoje" class="tab-btn px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center space-x-2 bg-white dark:bg-[#2c2c2e] text-[#1d1d1f] dark:text-white shadow-sm">
+                    <i data-lucide="sun" class="w-4 h-4"></i>
+                    <span>Hoje</span>
+                </button>
+                <button onclick="switchTab('projetos')" id="nav-projetos" class="tab-btn px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center space-x-2 text-slate-500 dark:text-slate-400 hover:text-[#1d1d1f] dark:hover:text-white">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                    <span>Projetos</span>
+                </button>
+                <button onclick="switchTab('financeiro')" id="nav-financeiro" class="tab-btn px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center space-x-2 text-slate-500 dark:text-slate-400 hover:text-[#1d1d1f] dark:hover:text-white">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                    <span>Financeiro</span>
+                </button>
+                <button onclick="switchTab('estatisticas')" id="nav-estatisticas" class="tab-btn px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center space-x-2 text-slate-500 dark:text-slate-400 hover:text-[#1d1d1f] dark:hover:text-white">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
+                    <span>Ajustes</span>
+                </button>
+            </nav>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleTheme()" class="p-2.5 rounded-2xl text-slate-600 dark:text-slate-300 bg-black/[0.03] dark:bg-white/[0.08] hover:opacity-80 transition-opacity" title="Alternar Tema">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container with bottom padding for mobile navigation bar -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-5 space-y-6 pb-28">
+
+        <!-- ================= TAB 1: HOJE ================= -->
+        <div id="tab-hoje" class="tab-content space-y-6">
+            
+            <!-- Date Navigation Header & Greeting Banner -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-2 bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 sm:p-6 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between relative overflow-hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="navigateDate(-1)" class="p-2.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] transition-colors" title="Dia Anterior">
+                                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                            </button>
+                            <input type="date" id="date-picker-input" onchange="onDateInputChanged(this)" class="bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-3 py-2 text-sm font-semibold focus:outline-none cursor-pointer">
+                            <button onclick="navigateDate(1)" class="p-2.5 rounded-2xl bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] transition-colors" title="Próximo Dia">
+                                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                            </button>
+                            <button onclick="goToToday()" class="px-3.5 py-2 bg-[#0071E3]/10 text-[#0071E3] dark:bg-[#0071E3]/25 dark:text-blue-400 rounded-2xl text-xs font-bold hover:opacity-80 transition-opacity">
+                                Hoje
+                            </button>
+                        </div>
+                        <span id="current-date-badge" class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">--</span>
+                    </div>
+
+                    <div class="pt-4">
+                        <h2 id="dynamic-greeting" class="text-xl sm:text-2xl font-bold tracking-tight text-[#1d1d1f] dark:text-white">Olá, Arthur! Foco na vaga de Medicina hoje.</h2>
+                    </div>
+
+                    <div class="mt-5 flex flex-wrap items-center gap-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        <div class="flex items-center space-x-2 bg-black/[0.03] dark:bg-white/[0.06] px-3.5 py-2 rounded-2xl">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
+                            <span id="today-tasks-counter">0/0 tarefas concluídas</span>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-black/[0.03] dark:bg-white/[0.06] px-3.5 py-2 rounded-2xl">
+                            <i data-lucide="flame" class="w-4 h-4 text-amber-500"></i>
+                            <span id="today-habits-counter">0/0 hábitos do dia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Countdown Widget -->
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 sm:p-6 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="hourglass" class="w-5 h-5 text-[#0071E3]"></i>
+                            <h3 class="font-bold text-xs text-slate-400 uppercase tracking-wider">Próximo Evento</h3>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-400" id="countdown-event-date">--/--/----</span>
+                    </div>
+                    <div class="my-4 text-center">
+                        <h4 id="countdown-event-title" class="font-bold text-base text-[#1d1d1f] dark:text-white truncate">Nenhum evento</h4>
+                        <div class="mt-2 flex items-baseline justify-center space-x-1.5">
+                            <span id="countdown-days-number" class="text-4xl font-extrabold tracking-tight text-[#0071E3]">0</span>
+                            <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">dias</span>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('projetos')" class="w-full py-3 text-xs font-bold text-[#0071E3] bg-[#0071E3]/10 hover:bg-[#0071E3]/20 rounded-2xl transition-colors">
+                        Gerenciar Eventos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Grid Today -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Left Subcolumn: Tasks & Habits -->
+                <div class="space-y-6">
+                    
+                    <!-- Tarefas do Dia -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="check-square" class="w-5 h-5 text-emerald-500"></i>
+                                <h3 class="font-bold text-base">Tarefas do Dia</h3>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-400" id="task-date-label">Selecionada</span>
+                        </div>
+                        
+                        <form onsubmit="addTask(event)" class="flex space-x-2">
+                            <input type="text" id="new-task-input" placeholder="Nova tarefa para esta data..." class="flex-1 bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm focus:outline-none">
+                            <button type="submit" class="bg-[#1d1d1f] dark:bg-white text-white dark:text-[#1d1d1f] px-5 py-3 rounded-2xl font-bold text-sm hover:opacity-95 transition-opacity flex items-center space-x-1.5">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Add</span>
+                            </button>
+                        </form>
+
+                        <div id="tasks-list" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                            <!-- Tasks populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Rastrador de Hábitos de Hoje -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="repeat" class="w-5 h-5 text-amber-500"></i>
+                                <h3 class="font-bold text-base">Rastrador de Hábitos</h3>
+                            </div>
+                            <span id="today-day-name" class="text-xs font-bold px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400">Hoje</span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Hábitos programados para este dia:</p>
+
+                        <div id="today-habits-list" class="space-y-2.5">
+                            <!-- Habits populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Subcolumn: Study Monitor & End of Day Journal -->
+                <div class="space-y-6">
+
+                    <!-- Monitor de Estudos -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="book-open" class="w-5 h-5 text-[#0071E3]"></i>
+                                <h3 class="font-bold text-base">Monitor de Estudos</h3>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-400">Registro Diário</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Horas</label>
+                                <input type="number" min="0" id="study-hours" oninput="saveStudyData()" placeholder="0" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl p-3 text-sm text-center font-bold focus:outline-none">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Minutos</label>
+                                <input type="number" min="0" max="59" id="study-minutes" oninput="saveStudyData()" placeholder="0" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl p-3 text-sm text-center font-bold focus:outline-none">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Q. Feitas</label>
+                                <input type="number" min="0" id="study-questions" oninput="saveStudyData()" placeholder="0" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl p-3 text-sm text-center font-bold focus:outline-none">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Q. Acertos</label>
+                                <input type="number" min="0" id="study-correct" oninput="saveStudyData()" placeholder="0" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl p-3 text-sm text-center font-bold focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Real-time Accuracy Display -->
+                        <div class="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-4 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-[#0071E3]">Percentual de Acertos</span>
+                                <h4 id="study-accuracy-display" class="text-2xl font-black text-[#0071E3] mt-0.5">0.0%</h4>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-[#0071E3]">
+                                <i data-lucide="percent" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diário de Bordo (Fim do Dia) -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="smile" class="w-5 h-5 text-purple-500"></i>
+                                <h3 class="font-bold text-base">Diário de Bordo & Humor</h3>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-400">Revisão Noturna</span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">Como você avalia seu dia?</label>
+                            <div id="mood-selector" class="grid grid-cols-4 gap-2.5">
+                                <button type="button" onclick="setMood('⚡', 'Focado')" class="mood-btn p-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] text-center transition-all flex flex-col items-center">
+                                    <span class="text-xl">⚡</span>
+                                    <span class="text-[10px] mt-1 font-bold text-slate-700 dark:text-slate-300">Focado</span>
+                                </button>
+                                <button type="button" onclick="setMood('🧠', 'Produtivo')" class="mood-btn p-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] text-center transition-all flex flex-col items-center">
+                                    <span class="text-xl">🧠</span>
+                                    <span class="text-[10px] mt-1 font-bold text-slate-700 dark:text-slate-300">Produtivo</span>
+                                </button>
+                                <button type="button" onclick="setMood('🔋', 'Cansado')" class="mood-btn p-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] text-center transition-all flex flex-col items-center">
+                                    <span class="text-xl">🔋</span>
+                                    <span class="text-[10px] mt-1 font-bold text-slate-700 dark:text-slate-300">Cansado</span>
+                                </button>
+                                <button type="button" onclick="setMood('📉', 'Desafiador')" class="mood-btn p-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] text-center transition-all flex flex-col items-center">
+                                    <span class="text-xl">📉</span>
+                                    <span class="text-[10px] mt-1 font-bold text-slate-700 dark:text-slate-300">Desafiador</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">O que precisa melhorar?</label>
+                            <textarea id="journal-comment" oninput="saveJournalComment()" rows="2.5" placeholder="Reflexões rápidas sobre pontos de melhoria..." class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl p-3.5 text-sm focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Planejamento Semanal -->
+            <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2.5">
+                        <i data-lucide="calendar-days" class="w-5 h-5 text-[#0071E3]"></i>
+                        <h3 class="font-bold text-base">Planejamento Semanal</h3>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-400">Segunda a Domingo</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3" id="weekly-matrix-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= TAB 2: PROJETOS & GERENCIAMENTO ================= -->
+        <div id="tab-projetos" class="tab-content space-y-6 hidden">
+            
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Projetos & Hábitos</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Organize seus projetos, etapas e hábitos diários.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Left Column: Projects -->
+                <div class="md:col-span-2 space-y-6">
+                    
+                    <!-- Novo Projeto Card -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="folder-plus" class="w-5 h-5 text-[#0071E3]"></i>
+                            <h3 class="font-bold text-base">Novo Projeto</h3>
+                        </div>
+                        <form onsubmit="addProject(event)" class="space-y-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Título do Projeto</label>
+                                <input type="text" id="project-title" required placeholder="Ex: Intensivo de Fisiologia" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Início</label>
+                                    <input type="date" id="project-start" required class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-3.5 py-3 text-sm focus:outline-none">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Término</label>
+                                    <input type="date" id="project-end" required class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-3.5 py-3 text-sm focus:outline-none">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-colors flex items-center justify-center space-x-2 shadow-sm">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Criar Projeto</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Active Projects List -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="layers" class="w-5 h-5 text-[#0071E3]"></i>
+                            <h3 class="font-bold text-base">Projetos em Andamento</h3>
+                        </div>
+                        <div id="projects-list" class="space-y-4">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Archived Projects -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="archive" class="w-5 h-5 text-slate-400"></i>
+                            <h3 class="font-bold text-base">Projetos Arquivados</h3>
+                        </div>
+                        <div id="archived-projects-list" class="space-y-3">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Habits & Countdowns Managers -->
+                <div class="space-y-6">
+
+                    <!-- Gerenciador de Hábitos -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="repeat" class="w-5 h-5 text-amber-500"></i>
+                            <h3 class="font-bold text-base">Gerenciador de Hábitos</h3>
+                        </div>
+                        <form onsubmit="addHabit(event)" class="space-y-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Nome do Hábito</label>
+                                <input type="text" id="habit-name" required placeholder="Ex: Flashcards 30 min" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm focus:outline-none">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Dias Ativos</label>
+                                <div class="grid grid-cols-4 gap-1.5 pt-1" id="habit-days-checkboxes">
+                                    <label class="flex items-center space-x-1.5 text-xs font-semibold bg-black/[0.02] dark:bg-white/[0.04] p-2.5 rounded-xl cursor-pointer">
+                                        <input type="checkbox" value="1" class="habit-day-cb rounded w-4 h-4 text-amber-600">
+                                        <span>Seg</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-xs font-semibold bg-black/[0.02] dark:bg-white/[0.04] p-2.5 rounded-xl cursor-pointer">
+                                        <input type="checkbox" value="2" class="habit-day-cb rounded w-4 h-4 text-amber-600">
+                                        <span>Ter</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-xs font-semibold bg-black/[0.02] dark:bg-white/[0.04] p-2.5 rounded-xl cursor-pointer">
+                                        <input type="checkbox" value="3" class="habit-day-cb rounded w-4 h-4 text-amber-600">
+                                        <span>Qua</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-xs font-semibold bg-black/[0.02] dark:bg-white/[0.04] p-2.5 rounded-xl cursor-pointer">
+                                        <input type="checkbox" value="4" class="habit-day-cb rounded w-4 h-4 text-amber-600">
+                                        <span>Qui</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-xs font-semibold bg-black/[0.02] dark:bg-white/[0.04] p-2.5 rounded-xl cursor-pointer">
+                                        <input type="checkbox" value="5" class="habit-day-cb rounded w-4 h-4 text-amber-600">
+                                        <span>Sex</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-xs font-semibold bg-black/[0.02] dark:bg-white/[0.04] p-2.5 rounded-xl cursor-pointer">
+                                        <input type="checkbox" value="6" class="habit-day-cb rounded w-4 h-4 text-amber-600">
+                                        <span>Sáb</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-xs font-semibold bg-black/[0.02] dark:bg-white/[0.04] p-2.5 rounded-xl cursor-pointer">
+                                        <input type="checkbox" value="0" class="habit-day-cb rounded w-4 h-4 text-amber-600">
+                                        <span>Dom</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-2xl text-sm transition-colors flex items-center justify-center space-x-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Salvar Hábito</span>
+                            </button>
+                        </form>
+
+                        <div id="habits-manager-list" class="space-y-2.5 pt-3 border-t border-black/[0.04] dark:border-white/[0.06] max-h-48 overflow-y-auto">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Gerenciador de Contagem Regressiva -->
+                    <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="hourglass" class="w-5 h-5 text-purple-500"></i>
+                            <h3 class="font-bold text-base">Gerenciador de Eventos</h3>
+                        </div>
+                        <form onsubmit="addCountdownEvent(event)" class="space-y-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Nome do Evento</label>
+                                <input type="text" id="countdown-name" required placeholder="Ex: Prova Vestibular" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm focus:outline-none">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Data do Evento</label>
+                                <input type="date" id="countdown-date" required class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-3.5 py-3 text-sm focus:outline-none">
+                            </div>
+                            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-2xl text-sm transition-colors flex items-center justify-center space-x-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Adicionar Evento</span>
+                            </button>
+                        </form>
+
+                        <div id="countdowns-manager-list" class="space-y-2.5 pt-3 border-t border-black/[0.04] dark:border-white/[0.06] max-h-48 overflow-y-auto">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= TAB 3: ÁREA FINANCEIRA ================= -->
+        <div id="tab-financeiro" class="tab-content space-y-6 hidden">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Área Financeira</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Fluxo de caixa, projeções mensais e poupança.</p>
+                </div>
+                <!-- Month Selector -->
+                <div class="flex items-center space-x-2.5 bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] px-4 py-2.5 rounded-2xl shadow-sm">
+                    <button onclick="navigateFinanceMonth(-1)" class="p-1.5 text-slate-400 hover:text-[#0071E3]"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                    <input type="month" id="finance-month-input" onchange="onFinanceMonthChanged(this)" class="bg-transparent text-sm font-bold focus:outline-none cursor-pointer">
+                    <button onclick="navigateFinanceMonth(1)" class="p-1.5 text-slate-400 hover:text-[#0071E3]"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+
+            <!-- 5 Financial Summary Cards (Savings Balance First) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Poupança</span>
+                        <h3 id="fin-savings" class="text-xl font-extrabold mt-1 text-[#0071E3]">R$ 0,00</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-[#0071E3] flex items-center justify-center">
+                        <i data-lucide="piggy-bank" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldo Atual</span>
+                        <h3 id="fin-current-balance" class="text-xl font-extrabold mt-1 text-[#1d1d1f] dark:text-white">R$ 0,00</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-[#0071E3] flex items-center justify-center">
+                        <i data-lucide="wallet" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Receitas Mês</span>
+                        <h3 id="fin-month-income" class="text-xl font-extrabold mt-1 text-emerald-600 dark:text-emerald-400">R$ 0,00</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                        <i data-lucide="arrow-down-left" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Despesas Mês</span>
+                        <h3 id="fin-month-expense" class="text-xl font-extrabold mt-1 text-red-600 dark:text-red-400">R$ 0,00</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center">
+                        <i data-lucide="arrow-up-right" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Projeções Mês</span>
+                        <h3 id="fin-active-projections" class="text-xl font-extrabold mt-1 text-amber-600 dark:text-amber-400">R$ 0,00</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                        <i data-lucide="clock" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Grid Sections -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Fluxo de Caixa do Mês -->
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="receipt" class="w-5 h-5 text-emerald-500"></i>
+                            <h3 class="font-bold text-base">Fluxo de Caixa do Mês</h3>
+                        </div>
+                    </div>
+
+                    <form onsubmit="addTransaction(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black/[0.02] dark:bg-white/[0.03] p-4 rounded-2xl border border-black/[0.04] dark:border-white/[0.04]">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Tipo</label>
+                            <select id="tx-type" onchange="updateCategoryDropdown('tx-type', 'tx-category')" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none">
+                                <option value="income">Receita</option>
+                                <option value="expense">Despesa</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Categoria</label>
+                            <select id="tx-category" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Valor (R$)</label>
+                            <input type="number" step="0.01" id="tx-amount" required placeholder="0.00" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Data</label>
+                            <input type="date" id="tx-date" required class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none">
+                        </div>
+                        <div class="sm:col-span-2 pt-1">
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors flex items-center justify-center space-x-2 shadow-sm">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Adicionar Transação</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1" id="transactions-list">
+                        <!-- Transactions populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Projeção Financeira (Strictly tied to selected month) -->
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="trending-up" class="w-5 h-5 text-[#0071E3]"></i>
+                            <h3 class="font-bold text-base">Projeções do Mês</h3>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Marque a caixa para efetivar a projeção como transação realizada.</p>
+
+                    <form onsubmit="addProjection(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black/[0.02] dark:bg-white/[0.03] p-4 rounded-2xl border border-black/[0.04] dark:border-white/[0.04]">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Tipo</label>
+                            <select id="proj-type" onchange="updateCategoryDropdown('proj-type', 'proj-category')" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none">
+                                <option value="income">Receita Projetada</option>
+                                <option value="expense">Despesa Projetada</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Categoria</label>
+                            <select id="proj-category" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Valor (R$)</label>
+                            <input type="number" step="0.01" id="proj-amount" required placeholder="0.00" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Data Estimada</label>
+                            <input type="date" id="proj-date" required class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none">
+                        </div>
+                        <div class="sm:col-span-2 pt-1">
+                            <button type="submit" class="w-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors flex items-center justify-center space-x-2 shadow-sm">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Adicionar Projeção</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1" id="projections-list">
+                        <!-- Projections populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Expense Breakdown Chart & Savings Record -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Gráfico de Despesas por Categoria (Mês) -->
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                    <div class="flex items-center space-x-2.5">
+                        <i data-lucide="pie-chart" class="w-5 h-5 text-purple-500"></i>
+                        <h3 class="font-bold text-base">Despesas por Categoria (Mês)</h3>
+                    </div>
+                    <div class="h-64 flex items-center justify-center relative">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Registro de Poupança -->
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                    <div class="flex items-center space-x-2.5">
+                        <i data-lucide="piggy-bank" class="w-5 h-5 text-[#0071E3]"></i>
+                        <h3 class="font-bold text-base">Registro de Poupança</h3>
+                    </div>
+
+                    <form onsubmit="addSavingsRecord(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-black/[0.02] dark:bg-white/[0.03] p-4 rounded-2xl border border-black/[0.04] dark:border-white/[0.04]">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Operação</label>
+                            <select id="sav-type" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none">
+                                <option value="deposit">Aporte (+)</option>
+                                <option value="withdraw">Resgate (-)</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Valor (R$)</label>
+                            <input type="number" step="0.01" id="sav-amount" required placeholder="0.00" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Descrição</label>
+                            <input type="text" id="sav-note" required placeholder="Ex: Reserva" class="w-full bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none">
+                        </div>
+                        <div class="sm:col-span-3 pt-1">
+                            <button type="submit" class="w-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors flex items-center justify-center space-x-2 shadow-sm">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Registrar na Poupança</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="space-y-2.5 max-h-48 overflow-y-auto pr-1" id="savings-history-list">
+                        <!-- History populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= TAB 4: ESTATÍSTICAS & AJUSTES ================= -->
+        <div id="tab-estatisticas" class="tab-content space-y-6 hidden">
+            
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Estatísticas & Ajustes</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Métricas de estudo, personalização e backup GitHub.</p>
+                </div>
+            </div>
+
+            <!-- Important Statistics Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span class="text-xs font-bold uppercase tracking-wider">Total de Estudo</span>
+                        <i data-lucide="clock" class="w-5 h-5 text-[#0071E3]"></i>
+                    </div>
+                    <h3 id="stat-total-hours" class="text-3xl font-extrabold">0.0h</h3>
+                </div>
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span class="text-xs font-bold uppercase tracking-wider">Média de Acertos</span>
+                        <i data-lucide="award" class="w-5 h-5 text-emerald-500"></i>
+                    </div>
+                    <h3 id="stat-avg-accuracy" class="text-3xl font-extrabold">0.0%</h3>
+                </div>
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span class="text-xs font-bold uppercase tracking-wider">Hábitos Ativos</span>
+                        <i data-lucide="repeat" class="w-5 h-5 text-amber-500"></i>
+                    </div>
+                    <h3 id="stat-total-habits" class="text-3xl font-extrabold">0</h3>
+                </div>
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span class="text-xs font-bold uppercase tracking-wider">Balanço Geral</span>
+                        <i data-lucide="dollar-sign" class="w-5 h-5 text-purple-500"></i>
+                    </div>
+                    <h3 id="stat-net-balance" class="text-3xl font-extrabold">R$ 0,00</h3>
+                </div>
+            </div>
+
+            <!-- Settings & Backup Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Personalização & Saudação -->
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                    <div class="flex items-center space-x-2.5">
+                        <i data-lucide="message-square" class="w-5 h-5 text-[#0071E3]"></i>
+                        <h3 class="font-bold text-base">Frase de Saudação Personalizada</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Edite a frase exibida após "Olá, Arthur!" na primeira tela do app.</p>
+                    
+                    <div class="space-y-3 pt-1">
+                        <div class="space-y-1">
+                            <input type="text" id="custom-greeting-input" placeholder="Ex: Foco na vaga de Medicina hoje." class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm focus:outline-none">
+                        </div>
+                        <button onclick="saveCustomGreeting()" class="w-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-colors shadow-sm">
+                            Salvar Saudação
+                        </button>
+                    </div>
+
+                    <div class="pt-4 border-t border-black/[0.04] dark:border-white/[0.06] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold">Aparência do Tema</h4>
+                                <p class="text-xs text-slate-400">Alternar modo claro e escuro.</p>
+                            </div>
+                            <button onclick="toggleTheme()" class="px-4 py-2.5 bg-black/[0.04] dark:bg-white/[0.08] text-xs font-bold rounded-2xl hover:opacity-80 transition-opacity">
+                                Alternar Tema
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between pt-2">
+                            <div>
+                                <h4 class="text-sm font-bold text-red-600 dark:text-red-400">Resetar Dados</h4>
+                                <p class="text-xs text-slate-400">Apaga tudo no localStorage.</p>
+                            </div>
+                            <button onclick="confirmResetData()" class="px-4 py-2.5 bg-red-600 text-white text-xs font-bold rounded-2xl hover:bg-red-700 transition-colors">
+                                Limpar Dados
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export & Import Backup -->
+                <div class="bg-white dark:bg-[#1c1c1e] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                    <div class="flex items-center space-x-2.5">
+                        <i data-lucide="database" class="w-5 h-5 text-[#0071E3]"></i>
+                        <h3 class="font-bold text-base">Backup GitHub (JSON)</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Exporte seus dados em JSON para garantir sincronia segura ao atualizar no GitHub, ou importe um backup.</p>
+                    
+                    <div class="space-y-3.5 pt-2">
+                        <button onclick="exportDataJSON()" class="w-full bg-[#0071E3] hover:bg-[#0077ED] text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-colors flex items-center justify-center space-x-2 shadow-sm">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                            <span>Exportar Backup (JSON)</span>
+                        </button>
+
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Importar Backup (JSON)</label>
+                            <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="w-full text-xs text-slate-400 file:mr-4 file:py-3 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-bold file:bg-black/[0.04] dark:file:bg-white/[0.08] file:text-[#1d1d1f] dark:file:text-white hover:file:opacity-80 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- iOS Bottom Navigation Bar (Fixed for Mobile Viewports) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/85 dark:bg-[#1c1c1e]/85 backdrop-blur-2xl border-t border-black/[0.08] dark:border-white/[0.1] px-4 py-2 pb-safe shadow-lg">
+        <div class="flex items-center justify-around max-w-md mx-auto">
+            <button onclick="switchTab('hoje')" id="mob-nav-hoje" class="mob-tab flex flex-col items-center py-1.5 px-4 text-xs font-bold text-[#0071E3] transition-colors">
+                <i data-lucide="sun" class="w-6 h-6 mb-1"></i>
+                <span>Hoje</span>
+            </button>
+            <button onclick="switchTab('projetos')" id="mob-nav-projetos" class="mob-tab flex flex-col items-center py-1.5 px-4 text-xs font-bold text-slate-400 hover:text-[#1d1d1f] dark:hover:text-white transition-colors">
+                <i data-lucide="layers" class="w-6 h-6 mb-1"></i>
+                <span>Projetos</span>
+            </button>
+            <button onclick="switchTab('financeiro')" id="mob-nav-financeiro" class="mob-tab flex flex-col items-center py-1.5 px-4 text-xs font-bold text-slate-400 hover:text-[#1d1d1f] dark:hover:text-white transition-colors">
+                <i data-lucide="credit-card" class="w-6 h-6 mb-1"></i>
+                <span>Financeiro</span>
+            </button>
+            <button onclick="switchTab('estatisticas')" id="mob-nav-estatisticas" class="mob-tab flex flex-col items-center py-1.5 px-4 text-xs font-bold text-slate-400 hover:text-[#1d1d1f] dark:hover:text-white transition-colors">
+                <i data-lucide="sliders" class="w-6 h-6 mb-1"></i>
+                <span>Ajustes</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const FINANCIAL_CATEGORIES = {
+            income: ['Salário', 'Freelance', 'Investimentos', 'Família', 'Rendimentos', 'Outros'],
+            expense: ['Alimentação', 'Moradia', 'Estudos', 'Transporte', 'Lazer', 'Saúde', 'Vestuário', 'Contas', 'Assinaturas', 'Desejos', 'Família', 'Outros']
+        };
+
+        let state = {
+            theme: 'light',
+            currentDate: new Date().toISOString().split('T')[0],
+            selectedFinanceMonth: new Date().toISOString().slice(0, 7),
+            customGreeting: 'Foco na vaga de Medicina hoje.',
+            tasks: [], 
+            habits: [],
+            habitLogs: {}, 
+            studyLogs: {}, 
+            journalLogs: {}, 
+            projects: [], 
+            countdowns: [], 
+            transactions: [], 
+            savings: { current: 0, history: [] }, 
+            projections: [] 
+        };
+
+        const STORAGE_KEY = 'plan_app_arthur_v6';
+        let expenseChartInstance = null;
+
+        function loadState() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                    if (!state.currentDate) state.currentDate = new Date().toISOString().split('T')[0];
+                    if (!state.selectedFinanceMonth) state.selectedFinanceMonth = new Date().toISOString().slice(0, 7);
+                    if (!state.savings) state.savings = { current: 0, history: [] };
+                    if (!state.projections) state.projections = [];
+                } catch (e) {
+                    console.error('Erro ao carregar dados', e);
+                }
+            } else {
+                const today = new Date().toISOString().split('T')[0];
+                state.currentDate = today;
+                state.selectedFinanceMonth = today.slice(0, 7);
+                state.tasks = [];
+                state.habits = [];
+                state.countdowns = [];
+                state.projects = [];
+                state.transactions = [];
+                state.savings = { current: 0, history: [] };
+                state.projections = [];
+                saveState();
+            }
+            applyTheme();
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.textContent = message;
+            toast.classList.remove('-translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('-translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        let modalCallback = null;
+        function showModal(title, desc, onConfirm) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-desc').textContent = desc;
+            modalCallback = onConfirm;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('modal-cancel').addEventListener('click', () => {
+            document.getElementById('custom-modal').classList.add('hidden');
+            modalCallback = null;
+        });
+
+        document.getElementById('modal-confirm').addEventListener('click', () => {
+            if (modalCallback) modalCallback();
+            document.getElementById('custom-modal').classList.add('hidden');
+            modalCallback = null;
+        });
+
+        let currentEditCallback = null;
+        function openEditModal(title, bodyHTML, onSave) {
+            document.getElementById('edit-modal-title').textContent = title;
+            document.getElementById('edit-modal-body').innerHTML = bodyHTML;
+            currentEditCallback = onSave;
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+            currentEditCallback = null;
+        }
+
+        document.getElementById('edit-modal-save-btn').addEventListener('click', () => {
+            if (currentEditCallback) {
+                currentEditCallback();
+            }
+            closeEditModal();
+        });
+
+        function applyTheme() {
+            if (state.theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            applyTheme();
+            saveState();
+            renderExpenseChart();
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['hoje', 'projetos', 'financeiro', 'estatisticas'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`nav-${t}`);
+                if (btn) {
+                    btn.classList.remove('bg-white', 'dark:bg-[#2c2c2e]', 'text-[#1d1d1f]', 'dark:text-white', 'shadow-sm');
+                    btn.classList.add('text-slate-500', 'dark:text-slate-400');
+                }
+                const mobBtn = document.getElementById(`mob-nav-${t}`);
+                if (mobBtn) {
+                    mobBtn.classList.remove('text-[#0071E3]', 'dark:text-white');
+                    mobBtn.classList.add('text-slate-400');
+                }
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white', 'dark:bg-[#2c2c2e]', 'text-[#1d1d1f]', 'dark:text-white', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-500', 'dark:text-slate-400');
+            }
+            const activeMobBtn = document.getElementById(`mob-nav-${tabId}`);
+            if (activeMobBtn) {
+                activeMobBtn.classList.add('text-[#0071E3]', 'dark:text-white');
+                activeMobBtn.classList.remove('text-slate-400');
+            }
+
+            renderAll();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateCategoryDropdown(selectTypeId, selectCatId, selectedVal = '') {
+            const typeEl = document.getElementById(selectTypeId);
+            const catEl = document.getElementById(selectCatId);
+            if (!typeEl || !catEl) return;
+            const typeVal = typeEl.value;
+            catEl.innerHTML = '';
+            const cats = FINANCIAL_CATEGORIES[typeVal] || [];
+            cats.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                if (c === selectedVal) opt.selected = true;
+                catEl.appendChild(opt);
+            });
+        }
+
+        function navigateDate(days) {
+            const d = new Date(state.currentDate + 'T00:00:00');
+            d.setDate(d.getDate() + days);
+            state.currentDate = d.toISOString().split('T')[0];
+            saveState();
+            renderHoje();
+        }
+
+        function goToToday() {
+            state.currentDate = new Date().toISOString().split('T')[0];
+            saveState();
+            renderHoje();
+        }
+
+        function onDateInputChanged(input) {
+            if (input.value) {
+                state.currentDate = input.value;
+                saveState();
+                renderHoje();
+            }
+        }
+
+        function getDayOfWeekForDate(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.getDay();
+        }
+
+        function renderHoje() {
+            const picker = document.getElementById('date-picker-input');
+            if (picker) picker.value = state.currentDate;
+
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateObj = new Date(state.currentDate + 'T00:00:00');
+            const dateFormatted = dateObj.toLocaleDateString('pt-BR', options);
+            document.getElementById('current-date-badge').textContent = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+            document.getElementById('task-date-label').textContent = dateObj.toLocaleDateString('pt-BR');
+
+            const daysNames = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+            const dow = getDayOfWeekForDate(state.currentDate);
+            document.getElementById('today-day-name').textContent = daysNames[dow];
+
+            document.getElementById('dynamic-greeting').textContent = `Olá, Arthur! ${state.customGreeting || 'Foco nos objetivos de hoje.'}`;
+            document.getElementById('custom-greeting-input').value = state.customGreeting || '';
+
+            if (state.countdowns.length > 0) {
+                const sorted = [...state.countdowns].sort((a,b) => new Date(a.date) - new Date(b.date));
+                const nextEvent = sorted[0];
+                document.getElementById('countdown-event-title').textContent = nextEvent.title;
+                document.getElementById('countdown-event-date').textContent = new Date(nextEvent.date + 'T00:00:00').toLocaleDateString('pt-BR');
+                
+                const diffTime = new Date(nextEvent.date + 'T00:00:00') - new Date(new Date().toDateString());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                document.getElementById('countdown-days-number').textContent = diffDays >= 0 ? diffDays : 0;
+            } else {
+                document.getElementById('countdown-event-title').textContent = 'Nenhum evento';
+                document.getElementById('countdown-event-date').textContent = '--/--/----';
+                document.getElementById('countdown-days-number').textContent = '0';
+            }
+
+            const selDate = state.currentDate;
+            const dateTasks = state.tasks.filter(t => t.date === selDate);
+            const tasksListEl = document.getElementById('tasks-list');
+            tasksListEl.innerHTML = '';
+            let completedCount = 0;
+
+            if (dateTasks.length === 0) {
+                tasksListEl.innerHTML = '<p class="text-xs text-slate-400 text-center py-4 font-semibold">Nenhuma tarefa para esta data.</p>';
+            } else {
+                dateTasks.forEach(t => {
+                    if (t.completed) completedCount++;
+                    const div = document.createElement('div');
+                    div.className = `flex items-center justify-between p-3.5 rounded-2xl border transition-colors ${t.completed ? 'bg-black/[0.01] dark:bg-white/[0.02] border-transparent opacity-60' : 'bg-black/[0.02] dark:bg-white/[0.04] border-transparent'}`;
+                    div.innerHTML = `
+                        <label class="flex items-center space-x-3 cursor-pointer flex-1 mr-2">
+                            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${t.id}')" class="rounded w-5 h-5 text-slate-900 dark:text-white cursor-pointer">
+                            <span class="text-sm font-semibold ${t.completed ? 'line-through text-slate-400' : ''}">${escapeHTML(t.text)}</span>
+                        </label>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openEditTaskModal('${t.id}')" class="p-1.5 text-slate-400 hover:text-[#0071E3]"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="deleteTask('${t.id}')" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    `;
+                    tasksListEl.appendChild(div);
+                });
+            }
+            document.getElementById('today-tasks-counter').textContent = `${completedCount}/${dateTasks.length} tarefas concluídas`;
+
+            const targetDow = getDayOfWeekForDate(selDate);
+            const targetHabits = state.habits.filter(h => h.days.includes(targetDow));
+            if (!state.habitLogs[selDate]) state.habitLogs[selDate] = {};
+
+            const habitsListEl = document.getElementById('today-habits-list');
+            habitsListEl.innerHTML = '';
+            let completedHabitsCount = 0;
+
+            if (targetHabits.length === 0) {
+                habitsListEl.innerHTML = '<p class="text-xs text-slate-400 text-center py-4 font-semibold">Nenhum hábito programado.</p>';
+            } else {
+                targetHabits.forEach(h => {
+                    const isDone = state.habitLogs[selDate][h.id] || false;
+                    if (isDone) completedHabitsCount++;
+                    const div = document.createElement('div');
+                    div.className = `flex items-center justify-between p-3.5 rounded-2xl border transition-colors ${isDone ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/50' : 'bg-black/[0.02] dark:bg-white/[0.04] border-transparent'}`;
+                    div.innerHTML = `
+                        <label class="flex items-center space-x-3 cursor-pointer flex-1">
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleHabitLog('${h.id}')" class="rounded w-5 h-5 text-amber-600 cursor-pointer">
+                            <span class="text-sm font-bold ${isDone ? 'line-through text-slate-400' : ''}">${escapeHTML(h.name)}</span>
+                        </label>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full ${isDone ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300' : 'bg-black/[0.04] dark:bg-white/[0.08] text-slate-500'}">${isDone ? 'Feito' : 'Pendente'}</span>
+                    `;
+                    habitsListEl.appendChild(div);
+                });
+            }
+            document.getElementById('today-habits-counter').textContent = `${completedHabitsCount}/${targetHabits.length} hábitos do dia`;
+
+            if (!state.studyLogs[selDate]) {
+                state.studyLogs[selDate] = { hours: 0, minutes: 0, totalQuestions: 0, correctQuestions: 0 };
+            }
+            const log = state.studyLogs[selDate];
+            document.getElementById('study-hours').value = log.hours || '';
+            document.getElementById('study-minutes').value = log.minutes || '';
+            document.getElementById('study-questions').value = log.totalQuestions || '';
+            document.getElementById('study-correct').value = log.correctQuestions || '';
+            updateStudyAccuracyDisplay();
+
+            if (!state.journalLogs[selDate]) {
+                state.journalLogs[selDate] = { mood: '', comment: '' };
+            }
+            const jLog = state.journalLogs[selDate];
+            document.getElementById('journal-comment').value = jLog.comment || '';
+            updateMoodUI(jLog.mood);
+
+            renderWeeklyMatrix();
+            lucide.createIcons();
+        }
+
+        function addTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('new-task-input');
+            const text = input.value.trim();
+            if (!text) return;
+            state.tasks.push({ id: Date.now().toString(), text, date: state.currentDate, completed: false });
+            input.value = '';
+            saveState();
+            renderHoje();
+            showToast('Tarefa adicionada!');
+        }
+
+        function toggleTask(id) {
+            const task = state.tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveState();
+                renderHoje();
+            }
+        }
+
+        function openEditTaskModal(id) {
+            const task = state.tasks.find(t => t.id === id);
+            if (!task) return;
+            const html = `
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Texto da Tarefa</label>
+                    <input type="text" id="edit-task-text" value="${escapeHTML(task.text)}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Data</label>
+                    <input type="date" id="edit-task-date" value="${task.date}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+            `;
+            openEditModal('Editar Tarefa', html, () => {
+                const newText = document.getElementById('edit-task-text').value.trim();
+                const newDate = document.getElementById('edit-task-date').value;
+                if (newText && newDate) {
+                    task.text = newText;
+                    task.date = newDate;
+                    saveState();
+                    renderHoje();
+                    showToast('Tarefa atualizada!');
+                }
+            });
+        }
+
+        function deleteTask(id) {
+            state.tasks = state.tasks.filter(t => t.id !== id);
+            saveState();
+            renderHoje();
+            showToast('Tarefa removida.');
+        }
+
+        function toggleHabitLog(habitId) {
+            const selDate = state.currentDate;
+            if (!state.habitLogs[selDate]) state.habitLogs[selDate] = {};
+            state.habitLogs[selDate][habitId] = !state.habitLogs[selDate][habitId];
+            saveState();
+            renderHoje();
+        }
+
+        function saveStudyData() {
+            const selDate = state.currentDate;
+            const hours = parseInt(document.getElementById('study-hours').value) || 0;
+            const minutes = parseInt(document.getElementById('study-minutes').value) || 0;
+            const totalQuestions = parseInt(document.getElementById('study-questions').value) || 0;
+            const correctQuestions = parseInt(document.getElementById('study-correct').value) || 0;
+
+            state.studyLogs[selDate] = { hours, minutes, totalQuestions, correctQuestions };
+            saveState();
+            updateStudyAccuracyDisplay();
+        }
+
+        function updateStudyAccuracyDisplay() {
+            const selDate = state.currentDate;
+            const log = state.studyLogs[selDate] || { totalQuestions: 0, correctQuestions: 0 };
+            let pct = 0;
+            if (log.totalQuestions > 0) {
+                pct = (log.correctQuestions / log.totalQuestions) * 100;
+                if (pct > 100) pct = 100;
+            }
+            document.getElementById('study-accuracy-display').textContent = pct.toFixed(1) + '%';
+        }
+
+        function setMood(emoji, label) {
+            const selDate = state.currentDate;
+            if (!state.journalLogs[selDate]) state.journalLogs[selDate] = {};
+            state.journalLogs[selDate].mood = emoji;
+            saveState();
+            updateMoodUI(emoji);
+            showToast(`Humor registrado: ${label}`);
+        }
+
+        function updateMoodUI(currentEmoji) {
+            const buttons = document.querySelectorAll('.mood-btn');
+            buttons.forEach(btn => {
+                const emojiSpan = btn.querySelector('span');
+                if (emojiSpan.textContent === currentEmoji) {
+                    btn.classList.add('border-[#0071E3]', 'bg-blue-50/60', 'dark:bg-blue-950/30');
+                } else {
+                    btn.classList.remove('border-[#0071E3]', 'bg-blue-50/60', 'dark:bg-blue-950/30');
+                }
+            });
+        }
+
+        function saveJournalComment() {
+            const selDate = state.currentDate;
+            if (!state.journalLogs[selDate]) state.journalLogs[selDate] = {};
+            state.journalLogs[selDate].comment = document.getElementById('journal-comment').value;
+            saveState();
+        }
+
+        function renderWeeklyMatrix() {
+            const grid = document.getElementById('weekly-matrix-grid');
+            grid.innerHTML = '';
+            const daysNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+            
+            const curr = new Date(state.currentDate + 'T00:00:00');
+            const first = curr.getDate() - curr.getDay() + 1;
+            
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(curr.setDate(first + i));
+                const dateStr = dayDate.toISOString().split('T')[0];
+                const isSelected = dateStr === state.currentDate;
+                
+                const dayTasks = state.tasks.filter(t => t.date === dateStr);
+                const dayEvents = state.countdowns.filter(c => c.date === dateStr);
+
+                const card = document.createElement('div');
+                card.className = `p-3.5 rounded-2xl border flex flex-col justify-between space-y-2 cursor-pointer transition-colors ${isSelected ? 'border-[#0071E3] bg-blue-50/30 dark:bg-blue-950/20' : 'border-black/[0.06] dark:border-white/[0.08] bg-black/[0.01] dark:bg-white/[0.02]'}`;
+                card.onclick = () => {
+                    state.currentDate = dateStr;
+                    saveState();
+                    renderHoje();
+                };
+                
+                let contentHTML = '';
+                dayTasks.forEach(t => {
+                    contentHTML += `<div class="text-xs font-semibold truncate ${t.completed ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-300'}">&bull; ${escapeHTML(t.text)}</div>`;
+                });
+                dayEvents.forEach(e => {
+                    contentHTML += `<div class="text-xs font-bold text-purple-600 dark:text-purple-400">★ ${escapeHTML(e.title)}</div>`;
+                });
+                if (!contentHTML) {
+                    contentHTML = '<span class="text-xs text-slate-400 italic font-semibold">Sem tarefas</span>';
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold ${isSelected ? 'text-[#0071E3]' : ''}">${daysNames[i]}</span>
+                        <span class="text-xs font-bold text-slate-400">${dayDate.getDate()}/${dayDate.getMonth()+1}</span>
+                    </div>
+                    <div class="space-y-1 overflow-y-auto max-h-28">
+                        ${contentHTML}
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        function renderProjetos() {
+            const activeList = document.getElementById('projects-list');
+            const archivedList = document.getElementById('archived-projects-list');
+            activeList.innerHTML = '';
+            archivedList.innerHTML = '';
+
+            const activeProjects = state.projects.filter(p => !p.archived);
+            const archivedProjects = state.projects.filter(p => p.archived);
+
+            if (activeProjects.length === 0) {
+                activeList.innerHTML = '<p class="text-xs text-slate-400 text-center py-4 font-semibold">Nenhum projeto em andamento.</p>';
+            } else {
+                activeProjects.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.04] rounded-2xl p-4 sm:p-5 space-y-3.5';
+                    
+                    let checklistHTML = '';
+                    p.checklist.forEach(item => {
+                        checklistHTML += `
+                            <div class="flex items-center justify-between py-1.5 text-sm">
+                                <label class="flex items-center space-x-3 cursor-pointer flex-1">
+                                    <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleProjectChecklist('${p.id}', '${item.id}')" class="rounded w-4 h-4 text-[#0071E3]">
+                                    <span class="font-medium ${item.completed ? 'line-through text-slate-400' : ''}">${escapeHTML(item.text)}</span>
+                                </label>
+                                <button onclick="deleteProjectChecklistItem('${p.id}', '${item.id}')" class="p-1 text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+                            </div>
+                        `;
+                    });
+
+                    div.innerHTML = `
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h4 class="font-bold text-sm sm:text-base text-[#1d1d1f] dark:text-white">${escapeHTML(p.title)}</h4>
+                                <span class="text-xs font-semibold text-slate-400">Início: ${p.startDate} | Término: ${p.endDate}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="openEditProjectModal('${p.id}')" class="px-3 py-1.5 bg-black/[0.04] dark:bg-white/[0.08] text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:opacity-80 transition-opacity">
+                                    Editar
+                                </button>
+                                <button onclick="archiveProject('${p.id}')" class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-bold hover:opacity-80 transition-opacity">
+                                    Concluir
+                                </button>
+                                <button onclick="deleteProject('${p.id}')" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                        <div class="space-y-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.04]">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Etapas</span>
+                            <div class="space-y-1 max-h-36 overflow-y-auto">${checklistHTML}</div>
+                            <form onsubmit="addProjectChecklistItem(event, '${p.id}')" class="flex space-x-2 pt-1">
+                                <input type="text" id="new-cl-${p.id}" placeholder="Nova etapa..." class="flex-1 bg-white dark:bg-[#2c2c2e] border border-transparent rounded-xl px-3 py-2 text-sm font-medium focus:outline-none">
+                                <button type="submit" class="bg-[#0071E3] text-white px-4 py-2 rounded-xl text-xs font-bold">Add</button>
+                            </form>
+                        </div>
+                    `;
+                    activeList.appendChild(div);
+                });
+            }
+
+            if (archivedProjects.length === 0) {
+                archivedList.innerHTML = '<p class="text-xs text-slate-400 text-center py-2 font-semibold">Nenhum projeto arquivado.</p>';
+            } else {
+                archivedProjects.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-black/[0.01] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/[0.04] rounded-2xl p-3.5 flex items-center justify-between opacity-75';
+                    div.innerHTML = `
+                        <div>
+                            <h4 class="font-bold text-sm line-through text-slate-500">${escapeHTML(p.title)}</h4>
+                            <span class="text-xs font-semibold text-slate-400">Arquivado</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="unarchiveProject('${p.id}')" class="text-xs font-bold text-[#0071E3] hover:underline">Restaurar</button>
+                            <button onclick="deleteProject('${p.id}')" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    `;
+                    archivedList.appendChild(div);
+                });
+            }
+
+            const habitsMgrEl = document.getElementById('habits-manager-list');
+            habitsMgrEl.innerHTML = '';
+            if (state.habits.length === 0) {
+                habitsMgrEl.innerHTML = '<p class="text-xs text-slate-400 text-center py-2 font-semibold">Nenhum hábito cadastrado.</p>';
+            } else {
+                const daysMap = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                state.habits.forEach(h => {
+                    const daysStr = h.days.map(d => daysMap[d]).join(', ');
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] text-sm';
+                    div.innerHTML = `
+                        <div>
+                            <strong class="font-bold">${escapeHTML(h.name)}</strong>
+                            <p class="text-xs font-semibold text-slate-400">Dias: ${daysStr}</p>
+                        </div>
+                        <button onclick="deleteHabit('${h.id}')" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    `;
+                    habitsMgrEl.appendChild(div);
+                });
+            }
+
+            const countMgrEl = document.getElementById('countdowns-manager-list');
+            countMgrEl.innerHTML = '';
+            if (state.countdowns.length === 0) {
+                countMgrEl.innerHTML = '<p class="text-xs text-slate-400 text-center py-2 font-semibold">Nenhum evento.</p>';
+            } else {
+                state.countdowns.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] text-sm';
+                    div.innerHTML = `
+                        <div>
+                            <strong class="font-bold">${escapeHTML(c.title)}</strong>
+                            <p class="text-xs font-semibold text-slate-400">${new Date(c.date + 'T00:00:00').toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <button onclick="openEditCountdownModal('${c.id}')" class="p-1.5 text-slate-400 hover:text-[#0071E3]"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button onclick="deleteCountdown('${c.id}')" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    `;
+                    countMgrEl.appendChild(div);
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        function addProject(e) {
+            e.preventDefault();
+            const title = document.getElementById('project-title').value.trim();
+            const startDate = document.getElementById('project-start').value;
+            const endDate = document.getElementById('project-end').value;
+            if (!title || !startDate || !endDate) return;
+
+            state.projects.push({
+                id: Date.now().toString(),
+                title,
+                startDate,
+                endDate,
+                checklist: [],
+                archived: false
+            });
+            document.getElementById('project-title').value = '';
+            document.getElementById('project-start').value = '';
+            document.getElementById('project-end').value = '';
+            saveState();
+            renderProjetos();
+            showToast('Projeto criado!');
+        }
+
+        function openEditProjectModal(id) {
+            const p = state.projects.find(proj => proj.id === id);
+            if (!p) return;
+            const html = `
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Título</label>
+                    <input type="text" id="edit-proj-title" value="${escapeHTML(p.title)}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Início</label>
+                        <input type="date" id="edit-proj-start" value="${p.startDate}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-3.5 py-3 text-sm font-semibold focus:outline-none">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-400 uppercase">Término</label>
+                        <input type="date" id="edit-proj-end" value="${p.endDate}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-3.5 py-3 text-sm font-semibold focus:outline-none">
+                    </div>
+                </div>
+            `;
+            openEditModal('Editar Projeto', html, () => {
+                const title = document.getElementById('edit-proj-title').value.trim();
+                const startDate = document.getElementById('edit-proj-start').value;
+                const endDate = document.getElementById('edit-proj-end').value;
+                if (title && startDate && endDate) {
+                    p.title = title;
+                    p.startDate = startDate;
+                    p.endDate = endDate;
+                    saveState();
+                    renderProjetos();
+                    showToast('Projeto atualizado!');
+                }
+            });
+        }
+
+        function archiveProject(id) {
+            const p = state.projects.find(proj => proj.id === id);
+            if (p) {
+                p.archived = true;
+                saveState();
+                renderProjetos();
+                showToast('Projeto arquivado.');
+            }
+        }
+
+        function unarchiveProject(id) {
+            const p = state.projects.find(proj => proj.id === id);
+            if (p) {
+                p.archived = false;
+                saveState();
+                renderProjetos();
+                showToast('Projeto restaurado.');
+            }
+        }
+
+        function deleteProject(id) {
+            showModal('Excluir Projeto', 'Deseja excluir permanentemente?', () => {
+                state.projects = state.projects.filter(p => p.id !== id);
+                saveState();
+                renderProjetos();
+                showToast('Projeto excluído.');
+            });
+        }
+
+        function addProjectChecklistItem(e, projectId) {
+            e.preventDefault();
+            const input = document.getElementById(`new-cl-${projectId}`);
+            const text = input.value.trim();
+            if (!text) return;
+            const p = state.projects.find(proj => proj.id === projectId);
+            if (p) {
+                p.checklist.push({ id: Date.now().toString(), text, completed: false });
+                saveState();
+                renderProjetos();
+            }
+        }
+
+        function toggleProjectChecklist(projectId, itemId) {
+            const p = state.projects.find(proj => proj.id === projectId);
+            if (p) {
+                const item = p.checklist.find(i => i.id === itemId);
+                if (item) {
+                    item.completed = !item.completed;
+                    saveState();
+                    renderProjetos();
+                }
+            }
+        }
+
+        function deleteProjectChecklistItem(projectId, itemId) {
+            const p = state.projects.find(proj => proj.id === projectId);
+            if (p) {
+                p.checklist = p.checklist.filter(i => i.id !== itemId);
+                saveState();
+                renderProjetos();
+            }
+        }
+
+        function addHabit(e) {
+            e.preventDefault();
+            const name = document.getElementById('habit-name').value.trim();
+            const checkboxes = document.querySelectorAll('.habit-day-cb:checked');
+            const days = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (!name || days.length === 0) {
+                showToast('Informe o nome e selecione os dias.');
+                return;
+            }
+
+            state.habits.push({ id: Date.now().toString(), name, days });
+            document.getElementById('habit-name').value = '';
+            checkboxes.forEach(cb => cb.checked = false);
+            saveState();
+            renderProjetos();
+            showToast('Hábito criado!');
+        }
+
+        function deleteHabit(id) {
+            state.habits = state.habits.filter(h => h.id !== id);
+            saveState();
+            renderProjetos();
+            showToast('Hábito removido.');
+        }
+
+        function addCountdownEvent(e) {
+            e.preventDefault();
+            const title = document.getElementById('countdown-name').value.trim();
+            const date = document.getElementById('countdown-date').value;
+            if (!title || !date) return;
+
+            state.countdowns.push({ id: Date.now().toString(), title, date });
+            document.getElementById('countdown-name').value = '';
+            document.getElementById('countdown-date').value = '';
+            saveState();
+            renderProjetos();
+            showToast('Evento adicionado!');
+        }
+
+        function openEditCountdownModal(id) {
+            const c = state.countdowns.find(item => item.id === id);
+            if (!c) return;
+            const html = `
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Nome do Evento</label>
+                    <input type="text" id="edit-c-title" value="${escapeHTML(c.title)}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Data</label>
+                    <input type="date" id="edit-c-date" value="${c.date}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+            `;
+            openEditModal('Editar Evento', html, () => {
+                const title = document.getElementById('edit-c-title').value.trim();
+                const date = document.getElementById('edit-c-date').value;
+                if (title && date) {
+                    c.title = title;
+                    c.date = date;
+                    saveState();
+                    renderProjetos();
+                    showToast('Evento atualizado!');
+                }
+            });
+        }
+
+        function deleteCountdown(id) {
+            state.countdowns = state.countdowns.filter(c => c.id !== id);
+            saveState();
+            renderProjetos();
+            showToast('Evento removido.');
+        }
+
+        function navigateFinanceMonth(delta) {
+            const [year, month] = state.selectedFinanceMonth.split('-').map(Number);
+            const d = new Date(year, month - 1 + delta, 1);
+            state.selectedFinanceMonth = d.toISOString().slice(0, 7);
+            saveState();
+            renderFinanceiro();
+        }
+
+        function onFinanceMonthChanged(input) {
+            if (input.value) {
+                state.selectedFinanceMonth = input.value;
+                saveState();
+                renderFinanceiro();
+            }
+        }
+
+        function renderFinanceiro() {
+            const monthInput = document.getElementById('finance-month-input');
+            if (monthInput) monthInput.value = state.selectedFinanceMonth;
+
+            const selectedYM = state.selectedFinanceMonth;
+
+            let allTimeInc = 0;
+            let allTimeExp = 0;
+            state.transactions.forEach(t => {
+                if (t.type === 'income') allTimeInc += t.amount;
+                else allTimeExp += t.amount;
+            });
+            const currentBalance = allTimeInc - allTimeExp;
+
+            const monthTransactions = state.transactions.filter(t => t.date && t.date.startsWith(selectedYM));
+            let monthIncome = 0;
+            let monthExpense = 0;
+            monthTransactions.forEach(t => {
+                if (t.type === 'income') monthIncome += t.amount;
+                else monthExpense += t.amount;
+            });
+
+            const monthProjections = (state.projections || []).filter(p => p.date && p.date.startsWith(selectedYM));
+            let activeProjExpense = 0;
+            monthProjections.forEach(p => {
+                if (p.type === 'expense') {
+                    activeProjExpense += p.amount;
+                }
+            });
+
+            const savEl = document.getElementById('fin-savings');
+            if (savEl) {
+                savEl.textContent = formatCurrency(state.savings.current || 0);
+            }
+
+            const balEl = document.getElementById('fin-current-balance');
+            balEl.textContent = formatCurrency(currentBalance);
+            balEl.className = `text-xl font-extrabold mt-1 ${currentBalance >= 0 ? 'text-[#1d1d1f] dark:text-white' : 'text-red-600 dark:text-red-400'}`;
+
+            document.getElementById('fin-month-income').textContent = formatCurrency(monthIncome);
+            document.getElementById('fin-month-expense').textContent = formatCurrency(monthExpense);
+            document.getElementById('fin-active-projections').textContent = formatCurrency(activeProjExpense);
+
+            updateCategoryDropdown('tx-type', 'tx-category');
+            updateCategoryDropdown('proj-type', 'proj-category');
+
+            const txListEl = document.getElementById('transactions-list');
+            txListEl.innerHTML = '';
+            if (monthTransactions.length === 0) {
+                txListEl.innerHTML = '<p class="text-xs text-slate-400 text-center py-4 font-semibold">Nenhuma transação neste mês.</p>';
+            } else {
+                monthTransactions.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+                    const isInc = t.type === 'income';
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] text-sm';
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-2xl flex items-center justify-center ${isInc ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400'}">
+                                <i data-lucide="${isInc ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <strong class="font-bold">${escapeHTML(t.category)}</strong>
+                                <p class="text-xs font-semibold text-slate-400">${t.date} ${t.description ? '(' + escapeHTML(t.description) + ')' : ''}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="font-bold ${isInc ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">${isInc ? '+' : '-'} ${formatCurrency(t.amount)}</span>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="openEditTransactionModal('${t.id}')" class="p-1.5 text-slate-400 hover:text-[#0071E3]" title="Editar"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="deleteTransaction('${t.id}')" class="p-1.5 text-slate-400 hover:text-red-500" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    txListEl.appendChild(div);
+                });
+            }
+
+            const projListEl = document.getElementById('projections-list');
+            projListEl.innerHTML = '';
+            if (monthProjections.length === 0) {
+                projListEl.innerHTML = '<p class="text-xs text-slate-400 text-center py-4 font-semibold">Nenhuma projeção neste mês.</p>';
+            } else {
+                monthProjections.forEach(p => {
+                    const isInc = p.type === 'income';
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3.5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] text-sm';
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-3 flex-1 mr-2">
+                            <input type="checkbox" onchange="toggleProjection('${p.id}')" class="rounded w-5 h-5 text-[#0071E3] cursor-pointer" title="Efetivar projeção">
+                            <div>
+                                <strong class="font-bold">${escapeHTML(p.category)}</strong>
+                                <p class="text-xs font-semibold text-slate-400">${p.date} (${isInc ? 'Receita' : 'Despesa'})</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="font-bold ${isInc ? 'text-emerald-600' : 'text-amber-600'}">${formatCurrency(p.amount)}</span>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="openEditProjectionModal('${p.id}')" class="p-1.5 text-slate-400 hover:text-[#0071E3]" title="Editar"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="deleteProjection('${p.id}')" class="p-1.5 text-slate-400 hover:text-red-500" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    projListEl.appendChild(div);
+                });
+            }
+
+            const savHistEl = document.getElementById('savings-history-list');
+            savHistEl.innerHTML = '';
+            if (!state.savings.history || state.savings.history.length === 0) {
+                savHistEl.innerHTML = '<p class="text-xs text-slate-400 text-center py-2 font-semibold">Nenhum movimento.</p>';
+            } else {
+                state.savings.history.forEach(s => {
+                    const isDep = s.type === 'deposit';
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3 rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] text-sm';
+                    div.innerHTML = `
+                        <div>
+                            <strong class="font-bold">${escapeHTML(s.note)}</strong>
+                            <p class="text-xs font-semibold text-slate-400">${s.date} (${isDep ? 'Aporte' : 'Resgate'})</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="font-bold ${isDep ? 'text-[#0071E3]' : 'text-amber-600'}">${isDep ? '+' : '-'} ${formatCurrency(s.amount)}</span>
+                            <button onclick="deleteSavingsRecord('${s.id}')" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    `;
+                    savHistEl.appendChild(div);
+                });
+            }
+
+            renderExpenseChart(monthTransactions);
+            lucide.createIcons();
+        }
+
+        function toggleProjection(id) {
+            const p = state.projections.find(item => item.id === id);
+            if (p) {
+                state.transactions.push({
+                    id: Date.now().toString(),
+                    type: p.type,
+                    category: p.category,
+                    amount: p.amount,
+                    date: p.date,
+                    description: 'Efetivado de Projeção'
+                });
+                state.projections = state.projections.filter(item => item.id !== id);
+                saveState();
+                renderFinanceiro();
+                showToast('Projeção efetivada como transação!');
+            }
+        }
+
+        function renderExpenseChart(monthTransactions) {
+            const ctx = document.getElementById('expenseChart');
+            if (!ctx) return;
+
+            const expenseMap = {};
+            FINANCIAL_CATEGORIES.expense.forEach(cat => expenseMap[cat] = 0);
+            
+            monthTransactions.forEach(t => {
+                if (t.type === 'expense') {
+                    if (expenseMap[t.category] !== undefined) {
+                        expenseMap[t.category] += t.amount;
+                    } else {
+                        expenseMap[t.category] = t.amount;
+                    }
+                }
+            });
+
+            const labels = Object.keys(expenseMap);
+            const data = Object.values(expenseMap);
+
+            if (expenseChartInstance) {
+                expenseChartInstance.destroy();
+            }
+
+            const isDark = document.documentElement.classList.contains('dark');
+
+            expenseChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#0071E3', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#f43f5e', '#3b82f6', '#10b981', '#f97316', '#64748b'
+                        ],
+                        borderWidth: isDark ? 2 : 0,
+                        borderColor: isDark ? '#1c1c1e' : '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, weight: 'bold' },
+                                color: isDark ? '#f5f5f7' : '#1d1d1f'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function addTransaction(e) {
+            e.preventDefault();
+            const type = document.getElementById('tx-type').value;
+            const category = document.getElementById('tx-category').value;
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const date = document.getElementById('tx-date').value;
+
+            if (!category || isNaN(amount) || !date) return;
+
+            state.transactions.push({ id: Date.now().toString(), type, category, amount, date });
+            document.getElementById('tx-amount').value = '';
+            document.getElementById('tx-date').value = '';
+            saveState();
+            renderFinanceiro();
+            showToast('Transação adicionada!');
+        }
+
+        function openEditTransactionModal(id) {
+            const t = state.transactions.find(item => item.id === id);
+            if (!t) return;
+            const html = `
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Tipo</label>
+                    <select id="edit-tx-type" onchange="updateCategoryDropdown('edit-tx-type', 'edit-tx-cat', '${t.category}')" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                        <option value="income" ${t.type==='income'?'selected':''}>Receita</option>
+                        <option value="expense" ${t.type==='expense'?'selected':''}>Despesa</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Categoria</label>
+                    <select id="edit-tx-cat" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Valor (R$)</label>
+                    <input type="number" step="0.01" id="edit-tx-amount" value="${t.amount}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Data</label>
+                    <input type="date" id="edit-tx-date" value="${t.date}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+            `;
+            openEditModal('Editar Transação', html, () => {
+                const type = document.getElementById('edit-tx-type').value;
+                const category = document.getElementById('edit-tx-cat').value;
+                const amount = parseFloat(document.getElementById('edit-tx-amount').value);
+                const date = document.getElementById('edit-tx-date').value;
+                if (category && !isNaN(amount) && date) {
+                    t.type = type;
+                    t.category = category;
+                    t.amount = amount;
+                    t.date = date;
+                    saveState();
+                    renderFinanceiro();
+                    showToast('Transação atualizada!');
+                }
+            });
+            updateCategoryDropdown('edit-tx-type', 'edit-tx-cat', t.category);
+        }
+
+        function deleteTransaction(id) {
+            state.transactions = state.transactions.filter(t => t.id !== id);
+            saveState();
+            renderFinanceiro();
+            showToast('Transação removida.');
+        }
+
+        function addProjection(e) {
+            e.preventDefault();
+            const type = document.getElementById('proj-type').value;
+            const category = document.getElementById('proj-category').value;
+            const amount = parseFloat(document.getElementById('proj-amount').value);
+            const date = document.getElementById('proj-date').value;
+
+            if (!category || isNaN(amount) || !date) return;
+
+            state.projections.push({ id: Date.now().toString(), type, category, amount, date });
+            document.getElementById('proj-amount').value = '';
+            document.getElementById('proj-date').value = '';
+            saveState();
+            renderFinanceiro();
+            showToast('Projeção adicionada!');
+        }
+
+        function openEditProjectionModal(id) {
+            const p = state.projections.find(item => item.id === id);
+            if (!p) return;
+            const html = `
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Tipo</label>
+                    <select id="edit-proj-type" onchange="updateCategoryDropdown('edit-proj-type', 'edit-proj-cat', '${p.category}')" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                        <option value="income" ${p.type==='income'?'selected':''}>Receita</option>
+                        <option value="expense" ${p.type==='expense'?'selected':''}>Despesa</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Categoria</label>
+                    <select id="edit-proj-cat" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Valor (R$)</label>
+                    <input type="number" step="0.01" id="edit-proj-amount" value="${p.amount}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Data Estimada</label>
+                    <input type="date" id="edit-proj-date" value="${p.date}" class="w-full bg-black/[0.03] dark:bg-white/[0.06] border border-transparent rounded-2xl px-4 py-3 text-sm font-semibold focus:outline-none">
+                </div>
+            `;
+            openEditModal('Editar Projeção', html, () => {
+                const type = document.getElementById('edit-proj-type').value;
+                const category = document.getElementById('edit-proj-cat').value;
+                const amount = parseFloat(document.getElementById('edit-proj-amount').value);
+                const date = document.getElementById('edit-proj-date').value;
+                if (category && !isNaN(amount) && date) {
+                    p.type = type;
+                    p.category = category;
+                    p.amount = amount;
+                    p.date = date;
+                    saveState();
+                    renderFinanceiro();
+                    showToast('Projeção atualizada!');
+                }
+            });
+            updateCategoryDropdown('edit-proj-type', 'edit-proj-cat', p.category);
+        }
+
+        function deleteProjection(id) {
+            state.projections = state.projections.filter(p => p.id !== id);
+            saveState();
+            renderFinanceiro();
+            showToast('Projeção removida.');
+        }
+
+        function addSavingsRecord(e) {
+            e.preventDefault();
+            const type = document.getElementById('sav-type').value;
+            const amount = parseFloat(document.getElementById('sav-amount').value);
+            const note = document.getElementById('sav-note').value.trim();
+
+            if (isNaN(amount) || !note) return;
+
+            const date = state.currentDate;
+            if (type === 'deposit') {
+                state.savings.current += amount;
+            } else {
+                state.savings.current -= amount;
+            }
+
+            state.savings.history.push({ id: Date.now().toString(), type, amount, date, note });
+            document.getElementById('sav-amount').value = '';
+            document.getElementById('sav-note').value = '';
+            saveState();
+            renderFinanceiro();
+            showToast('Poupança atualizada!');
+        }
+
+        function deleteSavingsRecord(id) {
+            const rec = state.savings.history.find(s => s.id === id);
+            if (rec) {
+                if (rec.type === 'deposit') state.savings.current -= rec.amount;
+                else state.savings.current += rec.amount;
+                state.savings.history = state.savings.history.filter(s => s.id !== id);
+                saveState();
+                renderFinanceiro();
+                showToast('Registro de poupança removido.');
+            }
+        }
+
+        function formatCurrency(val) {
+            return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function renderEstatisticas() {
+            let totalMinutes = 0;
+            let totalQ = 0;
+            let totalCorrect = 0;
+
+            Object.values(state.studyLogs).forEach(log => {
+                totalMinutes += (log.hours || 0) * 60 + (log.minutes || 0);
+                totalQ += log.totalQuestions || 0;
+                totalCorrect += log.correctQuestions || 0;
+            });
+
+            const totalHoursDecimal = totalMinutes / 60;
+            let avgAcc = totalQ > 0 ? (totalCorrect / totalQ) * 100 : 0;
+
+            document.getElementById('stat-total-hours').textContent = totalHoursDecimal.toFixed(1) + 'h';
+            document.getElementById('stat-avg-accuracy').textContent = avgAcc.toFixed(1) + '%';
+            document.getElementById('stat-total-habits').textContent = state.habits.length;
+
+            let totalInc = 0;
+            let totalExp = 0;
+            state.transactions.forEach(t => {
+                if (t.type === 'income') totalInc += t.amount;
+                else totalExp += t.amount;
+            });
+            document.getElementById('stat-net-balance').textContent = formatCurrency(totalInc - totalExp);
+            lucide.createIcons();
+        }
+
+        function saveCustomGreeting() {
+            const input = document.getElementById('custom-greeting-input');
+            const val = input.value.trim();
+            if (!val) return;
+            state.customGreeting = val;
+            saveState();
+            showToast('Saudação atualizada!');
+            renderHoje();
+        }
+
+        function confirmResetData() {
+            showModal('Resetar Dados', 'Tem certeza absoluta? Todos os dados serão apagados.', () => {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            });
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `plan_ios_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Backup exportado com sucesso!');
+        }
+
+        function importDataJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (parsed && typeof parsed === 'object') {
+                        if (parsed.tasks) state.tasks = parsed.tasks;
+                        if (parsed.habits) state.habits = parsed.habits;
+                        if (parsed.habitLogs) state.habitLogs = parsed.habitLogs;
+                        if (parsed.studyLogs) state.studyLogs = parsed.studyLogs;
+                        if (parsed.journalLogs) state.journalLogs = parsed.journalLogs;
+                        if (parsed.projects) state.projects = parsed.projects;
+                        if (parsed.countdowns) state.countdowns = parsed.countdowns;
+                        if (parsed.transactions) state.transactions = parsed.transactions;
+                        if (parsed.savings) state.savings = parsed.savings;
+                        if (parsed.projections) state.projections = parsed.projections;
+                        if (parsed.customGreeting) state.customGreeting = parsed.customGreeting;
+                        if (parsed.theme) state.theme = parsed.theme;
+
+                        saveState();
+                        applyTheme();
+                        renderAll();
+                        showToast('Backup importado com sucesso!');
+                    } else {
+                        showToast('Arquivo JSON inválido.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast('Erro ao processar arquivo JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function renderAll() {
+            renderHoje();
+            renderProjetos();
+            renderFinanceiro();
+            renderEstatisticas();
+        }
+
+        window.onload = function() {
+            loadState();
+            renderAll();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
